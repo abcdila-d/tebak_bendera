@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tebak Bendera</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        img {
+            width: 300px;
+            height: 200px;
+            border: 2px solid #333;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #result {
+            font-size: 20px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #score {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tebak Bendera</h1>
+
+    <!-- Menu benua -->
+    <div id="continentMenu">
+        <h2>Pilih Benua:</h2>
+        <button onclick="startGame('Asia')">Asia</button>
+        <button onclick="startGame('Eropa')">Eropa</button>
+        <button onclick="startGame('Amerika')">Amerika</button>
+        <button onclick="startGame('Afrika')">Afrika</button>
+    </div>
+
+    <!-- Game tebak bendera -->
+    <div id="gameArea" style="display:none;">
+        <div id="score">Skor: 0</div>
+        <img id="flagImage" src="" alt="Bendera">
+        <div id="options"></div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let currentFlag;
+        let score = 0;
+        let gameFlags = [];
+
+        // Data bendera berdasarkan benua
+        const allFlags = {
+            Asia: [
+                { name: "Indonesia", src: "https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Indonesia.svg" },
+                { name: "Jepang", src: "https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg" },
+                { name: "China", src: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Flag_of_China.svg" }
+            ],
+            Eropa: [
+                { name: "Jerman", src: "https://upload.wikimedia.org/wikipedia/en/b/ba/Flag_of_Germany.svg" },
+                { name: "Prancis", src: "https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg" },
+                { name: "Italia", src: "https://upload.wikimedia.org/wikipedia/en/0/03/Flag_of_Italy.svg" }
+            ],
+            Amerika: [
+                { name: "Amerika Serikat", src: "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" },
+                { name: "Kanada", src: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Flag_of_Canada.svg" },
+                { name: "Brasil", src: "https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg" }
+            ],
+            Afrika: [
+                { name: "Mesir", src: "https://upload.wikimedia.org/wikipedia/commons/f/fe/Flag_of_Egypt.svg" },
+                { name: "Afrika Selatan", src: "https://upload.wikimedia.org/wikipedia/commons/a/af/Flag_of_South_Africa.svg" },
+                { name: "Kenya", src: "https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Kenya.svg" }
+            ]
+        };
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startGame(continent) {
+            score = 0;
+            document.getElementById("score").innerText = `Skor: ${score}`;
+            gameFlags = allFlags[continent];
+            document.getElementById("continentMenu").style.display = "none";
+            document.getElementById("gameArea").style.display = "block";
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            document.getElementById("result").innerText = "";
+            const shuffledFlags = shuffle([...gameFlags]);
+            currentFlag = shuffledFlags[0];
+            document.getElementById("flagImage").src = currentFlag.src;
+
+            const optionsDiv = document.getElementById("options");
+            optionsDiv.innerHTML = "";
+
+            // Ambil 3 jawaban lain + jawaban benar
+            const choices = shuffle(shuffledFlags.slice(0, 4));
+
+            choices.forEach(flag => {
+                const button = document.createElement("button");
+                button.innerText = flag.name;
+                button.onclick = () => checkAnswer(flag.name);
+                optionsDiv.appendChild(button);
+            });
+        }
+
+        function checkAnswer(answer) {
+            const result = document.getElementById("result");
+            if (answer === currentFlag.name) {
+                result.innerText = "✅ Benar!";
+                score += 10;
+            } else {
+                result.innerText = `❌ Salah! Jawaban yang benar: ${currentFlag.name}`;
+            }
+            document.getElementById("score").innerText = `Skor: ${score}`;
+
+            setTimeout(nextQuestion, 1000);
+        }
+    </script>
+
+</body>
+</html>

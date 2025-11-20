@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tebak Bendera</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        img {
+            width: 300px;
+            height: 200px;
+            border: 2px solid #333;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 25px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+        #result {
+            font-size: 20px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #score {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        /* Menu benua */
+        .continent-btn {
+            display: inline-block;
+            width: 150px;
+            height: 150px;
+            margin: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .continent-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.3);
+        }
+        #continentMenu h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        /* Warna benua berbeda */
+        .Asia { background-color: #e74c3c; }
+        .Eropa { background-color: #2ecc71; }
+        .Amerika { background-color: #f1c40f; color: #333; }
+        .Afrika { background-color: #9b59b6; }
+    </style>
+</head>
+<body>
+
+    <h1>Tebak Bendera</h1>
+
+    <!-- Menu benua -->
+    <div id="continentMenu">
+        <h2>Pilih Benua:</h2>
+        <button class="continent-btn Asia" onclick="startGame('Asia')">Asia</button>
+        <button class="continent-btn Eropa" onclick="startGame('Eropa')">Eropa</button>
+        <button class="continent-btn Amerika" onclick="startGame('Amerika')">Amerika</button>
+        <button class="continent-btn Afrika" onclick="startGame('Afrika')">Afrika</button>
+    </div>
+
+    <!-- Game tebak bendera -->
+    <div id="gameArea" style="display:none;">
+        <div id="score">Skor: 0</div>
+        <img id="flagImage" src="" alt="Bendera">
+        <div id="options"></div>
+        <div id="result"></div>
+        <button style="margin-top:20px; background-color:#e67e22; color:white;" onclick="backToMenu()">🏠 Kembali ke Menu Utama</button>
+    </div>
+
+    <script>
+        let currentFlag;
+        let score = 0;
+        let gameFlags = [];
+
+        // Data bendera berdasarkan benua (7 bendera per benua)
+        const allFlags = {
+            Asia: [
+                { name: "Indonesia", src: "https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Indonesia.svg" },
+                { name: "Jepang", src: "https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg" },
+                { name: "China", src: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Flag_of_China.svg" },
+                { name: "India", src: "https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg" },
+                { name: "Thailand", src: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Flag_of_Thailand.svg" },
+                { name: "Malaysia", src: "https://upload.wikimedia.org/wikipedia/commons/6/66/Flag_of_Malaysia.svg" },
+                { name: "Korea Selatan", src: "https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg" }
+            ],
+            Eropa: [
+                { name: "Jerman", src: "https://upload.wikimedia.org/wikipedia/en/b/ba/Flag_of_Germany.svg" },
+                { name: "Prancis", src: "https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg" },
+                { name: "Italia", src: "https://upload.wikimedia.org/wikipedia/en/0/03/Flag_of_Italy.svg" },
+                { name: "Spanyol", src: "https://upload.wikimedia.org/wikipedia/en/9/9a/Flag_of_Spain.svg" },
+                { name: "Belanda", src: "https://upload.wikimedia.org/wikipedia/commons/2/20/Flag_of_the_Netherlands.svg" },
+                { name: "Rusia", src: "https://upload.wikimedia.org/wikipedia/en/f/f3/Flag_of_Russia.svg" },
+                { name: "Swedia", src: "https://upload.wikimedia.org/wikipedia/en/4/4c/Flag_of_Sweden.svg" }
+            ],
+            Amerika: [
+                { name: "Amerika Serikat", src: "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" },
+                { name: "Kanada", src: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Flag_of_Canada.svg" },
+                { name: "Brasil", src: "https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg" },
+                { name: "Meksiko", src: "https://upload.wikimedia.org/wikipedia/commons/f/fc/Flag_of_Mexico.svg" },
+                { name: "Argentina", src: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Flag_of_Argentina.svg" },
+                { name: "Kolombia", src: "https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Colombia.svg" },
+                { name: "Chile", src: "https://upload.wikimedia.org/wikipedia/commons/7/78/Flag_of_Chile.svg" }
+            ],
+            Afrika: [
+                { name: "Mesir", src: "https://upload.wikimedia.org/wikipedia/commons/f/fe/Flag_of_Egypt.svg" },
+                { name: "Afrika Selatan", src: "https://upload.wikimedia.org/wikipedia/commons/a/af/Flag_of_South_Africa.svg" },
+                { name: "Kenya", src: "https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Kenya.svg" },
+                { name: "Nigeria", src: "https://upload.wikimedia.org/wikipedia/commons/7/79/Flag_of_Nigeria.svg" },
+                { name: "Ghana", src: "https://upload.wikimedia.org/wikipedia/commons/1/19/Flag_of_Ghana.svg" },
+                { name: "Aljazair", src: "https://upload.wikimedia.org/wikipedia/commons/7/77/Flag_of_Algeria.svg" },
+                { name: "Maroko", src: "https://upload.wikimedia.org/wikipedia/commons/2/2c/Flag_of_Morocco.svg" }
+            ]
+        };
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startGame(continent) {
+            score = 0;
+            document.getElementById("score").innerText = `Skor: ${score}`;
+            gameFlags = allFlags[continent];
+            document.getElementById("continentMenu").style.display = "none";
+            document.getElementById("gameArea").style.display = "block";
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            document.getElementById("result").innerText = "";
+            const shuffledFlags = shuffle([...gameFlags]);
+            currentFlag = shuffledFlags[0];
+            document.getElementById("flagImage").src = currentFlag.src;
+
+            const optionsDiv = document.getElementById("options");
+            optionsDiv.innerHTML = "";
+
+            // Ambil jawaban acak dari 4 pilihan (termasuk jawaban benar)
+            let choices = [currentFlag];
+            while (choices.length < 4) {
+                let randomFlag = shuffledFlags[Math.floor(Math.random() * shuffledFlags.length)];
+                if (!choices.includes(randomFlag)) choices.push(randomFlag);
+            }
+            choices = shuffle(choices);
+
+            choices.forEach(flag => {
+                const button = document.createElement("button");
+                button.innerText = flag.name;
+                button.style.backgroundColor = "#3498db";
+                button.style.color = "white";
+                button.style.borderRadius = "8px";
+                button.onclick = () => checkAnswer(flag.name);
+                optionsDiv.appendChild(button);
+            });
+        }
+
+        function checkAnswer(answer) {
+            const result = document.getElementById("result");
+            if (answer === currentFlag.name) {
+                result.innerText = "✅ Benar!";
+                score += 10;
+            } else {
+                result.innerText = `❌ Salah! Jawaban yang benar: ${currentFlag.name}`;
+            }
+            document.getElementById("score").innerText = `Skor: ${score}`;
+            setTimeout(nextQuestion, 1000);
+        }
+
+        function backToMenu() {
+            document.getElementById("gameArea").style.display = "none";
+            document.getElementById("continentMenu").style.display = "block";
+        }
+    </script>
+
+</body>
+</html>
